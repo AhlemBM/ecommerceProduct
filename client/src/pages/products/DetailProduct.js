@@ -1,60 +1,45 @@
-import React ,{useContext, useEffect, useState} from 'react'
-import {useParams , Link}  from "react-router-dom";
-
-
+// ProductDetail.js
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import axios from 'axios';
 import "./DetailProduct.css"
-import ProductsAPI from "../../api/ProductsAPI";
-import ProductItem from "../../utils/Product_item/ProductItem";
-function DetailProduct() {
-    const params = useParams();
+function ProductDetail() {
+    const [product, setProduct] = useState(null);
+    const { id } = useParams(); // Obtient l'identifiant du produit de l'URL
 
-    const [products]= ProductsAPI().products
-    console.log("les produits sont"+products)
+    useEffect(() => {
+        const getProductDetail = async () => {
+            try {
+                const res = await axios.get(`/api/article/get/${id}`); // Appel à l'API pour obtenir les détails du produit
+                setProduct(res.data.product);
+            } catch (error) {
+                console.error("Error fetching product details:", error);
+            }
+        };
+        getProductDetail();
+    }, [id]); // Exécute l'effet à chaque changement d'identifiant de produit
 
-    const[detailProduct,setDetailProduct] = useState([])
+    // Affichage pendant le chargement
+    if (!product) {
+        return <p>Chargement des détails du produit...</p>;
+    }
 
-    useEffect(()=>{
-        if(params.id){
-            products.forEach(product =>{
-
-                if(product._id=== params.id) setDetailProduct(product)
-
-            })
-        }
-    },[products,params.id])
-
-
-        console.log("le detail est"+detailProduct)
-
-    if(detailProduct.length === 0) return 0;
     return (
-        <>
-            <div className="detail">
-                <img src={detailProduct.img.url} alt=""/>
-                <div className="box-detail">
-                    <div className="row">
-                        <h2>{detailProduct.nom}</h2>
-                        <h6>ID: {detailProduct._id}</h6>
-                    </div>
-
-                    <p> <h4 style={{textDecoration:'underline' , color:'whitesmoke'}}>Content:</h4> {detailProduct.video}</p>
-                    <p><h4 style={{textDecoration:'underline' , color:'whitesmoke'}}>Description : </h4>{detailProduct.caracteristiques}</p>
+        <div className="detail">
+            <img src={product.img.url} alt=""/>
+            <div className="box-detail">
+                <div className="row">
+                    <h2>{product.nom}</h2>
 
                 </div>
+                <h4 style={{textDecoration:'underline' , color:'whitesmoke'}}>Content:</h4>
+                <p>{product.video}</p>
+                <h4 style={{textDecoration:'underline' , color:'whitesmoke'}}>Description:</h4>
+                <p>{product.caracteristiques}</p>
             </div>
-            <div>
-                <h2>Related Products</h2>
-                <div className="products">
-                    {
-                        products.map(product => {
-                            return product.categorie === detailProduct.categorie
-                                ? <ProductItem key={product._id} product={product}/> : null
-                        })
-                    }
-                </div>
-            </div>
-        </>
-    )
+        </div>
+    );
+
 }
 
-export default DetailProduct
+export default ProductDetail;
